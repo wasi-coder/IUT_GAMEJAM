@@ -8,6 +8,8 @@ CROW_ATTACK_DAMAGE = 10
 CROW_SPEED = 70
 CROW_ANIMATION_SPEED = 7
 CROW_ATTACK_COOLDOWN = 1.0
+CROW_KNOCKBACK_STRENGTH = 5.5
+CROW_KNOCKBACK_DECELERATION = 1000
 CROW_PATH = Path(__file__).parent
 
 
@@ -32,6 +34,7 @@ class Crow:
         self.state = "idle"
         self.animation_time = 0.0
         self.attack_cooldown_left = 0.0
+        self.knockback_velocity = 0.0
 
     @classmethod
     def _load_animations(cls):
@@ -67,6 +70,10 @@ class Crow:
     def take_damage(self, amount):
         self.health = max(0, self.health - max(0, amount))
 
+    def apply_knockback(self, distance):
+        """Make a kicked crow visibly fly backward."""
+        self.knockback_velocity = distance * CROW_KNOCKBACK_STRENGTH
+
     def update(self, delta_time, player):
         if not self.alive:
             return
@@ -75,6 +82,29 @@ class Crow:
             0.0, self.attack_cooldown_left - delta_time
         )
         self.animation_time += delta_time
+
+        if abs(self.knockback_velocity) > 1:
+            self.state = "fly"
+            self.position.x += self.knockback_velocity * delta_time
+            self.position.x = max(
+                self.zone_left,
+                min(self.position.x, self.zone_right - self.rect.width),
+            )
+            self.rect.topleft = (
+                round(self.position.x),
+                round(self.position.y),
+            )
+            deceleration = CROW_KNOCKBACK_DECELERATION * delta_time
+            if self.knockback_velocity > 0:
+                self.knockback_velocity = max(
+                    0.0, self.knockback_velocity - deceleration
+                )
+            else:
+                self.knockback_velocity = min(
+                    0.0, self.knockback_velocity + deceleration
+                )
+            return
+        self.knockback_velocity = 0.0
 
         if not self.zone_left <= player.rect.centerx <= self.zone_right:
             self.state = "idle"

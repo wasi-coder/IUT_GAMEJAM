@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pygame
-
 from ghosts import Ghost, GhostWindow
 from music_manager import play_background_music
 from player import Player
@@ -128,7 +127,7 @@ def draw_puzzle_timer(screen, player):
 def map7(player=None, arrived_from=None):
     """Display native Map 7 with player movement and a scrolling camera."""
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Map 7 - Image Test")
+    pygame.display.set_caption("The Broken Rite - Hidden House")
     clock = pygame.time.Clock()
     play_background_music(MUSIC_PATH)
     background = load_map()

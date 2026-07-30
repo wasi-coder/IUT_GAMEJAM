@@ -1,12 +1,106 @@
 """Opening cinematic playback for the game."""
 
+import os
 from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 
 import pygame
 
 
 VIDEO_PATH = Path(__file__).parent / "openingvid" / "opening_vid.mp4"
 SLIME_VIDEO_PATH = Path(__file__).parent / "openingvid" / "slime_map.mp4"
+TOAD_VIDEO_PATH = Path(__file__).parent / "openingvid" / "toad_map.mp4"
+FLYING_VIDEO_PATH = Path(__file__).parent / "openingvid" / "flying_map.mp4"
+
+
+def _extract_video_audio(video_path):
+    """Extract an MP4 audio track to a temporary WAV file."""
+    ffmpeg_executable = shutil.which("ffmpeg")
+    if ffmpeg_executable is None:
+        try:
+            import imageio_ffmpeg
+
+            ffmpeg_executable = imageio_ffmpeg.get_ffmpeg_exe()
+        except (ImportError, RuntimeError):
+            ffmpeg_executable = None
+
+    if ffmpeg_executable is None:
+        print(
+            "Video audio skipped: install dependencies with "
+            "'python -m pip install -r requirements.txt'."
+        )
+        return None
+
+    temporary_audio = tempfile.NamedTemporaryFile(
+        suffix=".wav", delete=False
+    )
+    audio_path = Path(temporary_audio.name)
+    temporary_audio.close()
+
+    command = [
+        ffmpeg_executable,
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        str(video_path),
+        "-vn",
+        "-acodec",
+        "pcm_s16le",
+        str(audio_path),
+    ]
+    startupinfo = None
+    if os.name == "nt":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            startupinfo=startupinfo,
+            check=False,
+        )
+    except OSError as error:
+        print(f"Video audio extraction failed: {error}")
+        audio_path.unlink(missing_ok=True)
+        return None
+    if result.returncode != 0 or audio_path.stat().st_size == 0:
+        error_message = result.stderr.decode(errors="replace").strip()
+        if error_message:
+            print(f"Video audio extraction failed: {error_message}")
+        audio_path.unlink(missing_ok=True)
+        return None
+    return audio_path
+
+
+def _start_video_audio(video_path):
+    """Start a video's audio and return its temporary file, if present."""
+    audio_path = _extract_video_audio(video_path)
+    if audio_path is None:
+        return None
+    try:
+        if not pygame.mixer.get_init():
+            pygame.mixer.init()
+        pygame.mixer.music.load(audio_path)
+        pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.play()
+    except (OSError, pygame.error) as error:
+        print(f"Video audio skipped: {error}")
+        audio_path.unlink(missing_ok=True)
+        return None
+    return audio_path
+
+
+def _stop_video_audio(audio_path):
+    if audio_path is None:
+        return
+    pygame.mixer.music.stop()
+    if hasattr(pygame.mixer.music, "unload"):
+        pygame.mixer.music.unload()
+    audio_path.unlink(missing_ok=True)
 
 
 def play_video(video_path, screen_size=(600, 320)):
@@ -26,12 +120,13 @@ def play_video(video_path, screen_size=(600, 320)):
         return True
 
     screen = pygame.display.set_mode(screen_size)
-    pygame.display.set_caption("Arcane Kickoff")
+    pygame.display.set_caption("The Broken Rite")
     clock = pygame.time.Clock()
     video = cv2.VideoCapture(str(video_path))
     fps = video.get(cv2.CAP_PROP_FPS)
     if not fps or fps <= 0:
         fps = 30
+    audio_path = _start_video_audio(video_path)
 
     keep_playing = True
     continue_game = True
@@ -91,6 +186,7 @@ def play_video(video_path, screen_size=(600, 320)):
         clock.tick(round(fps))
 
     video.release()
+    _stop_video_audio(audio_path)
     return continue_game
 
 

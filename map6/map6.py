@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pygame
-
 from music_manager import play_background_music
 from npc3 import QuestNPC
 from player import Player
@@ -24,7 +23,7 @@ DOOR_X = 900
 DOOR_SIZE = (72, 101)
 GROUND_Y = 240
 MAP_PATH = Path(__file__).parent / "map6.png"
-DOOR_PATH = Path(__file__).parent / "door.jpg"
+DOOR_PATH = Path(__file__).parent / "door.png"
 MUSIC_PATH = Path(__file__).parent / "music.mp3"
 
 
@@ -74,7 +73,7 @@ def stop_flight(player):
 
 def map6(player=None, arrived_from=None):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Map 6 - The Grieving Husband")
+    pygame.display.set_caption("The Broken Rite - The Grieving Husband")
     clock = pygame.time.Clock()
     play_background_music(MUSIC_PATH)
     background = load_map()

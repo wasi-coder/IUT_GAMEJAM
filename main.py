@@ -3,7 +3,13 @@ import pygame
 from map1.map1 import map1
 from map2.map2 import map2
 from map3.map3 import map3
-from opening_video import SLIME_VIDEO_PATH, play_opening_video, play_video
+from opening_video import (
+    FLYING_VIDEO_PATH,
+    SLIME_VIDEO_PATH,
+    TOAD_VIDEO_PATH,
+    play_opening_video,
+    play_video,
+)
 from map4.map4 import map4
 from map6.map6 import map6
 from map7.map7 import map7
@@ -47,6 +53,22 @@ def main():
             if not play_video(SLIME_VIDEO_PATH):
                 break
             player.slime_video_seen = True
+        elif (
+            next_map == "map3"
+            and player is not None
+            and not player.toad_video_seen
+        ):
+            if not play_video(TOAD_VIDEO_PATH):
+                break
+            player.toad_video_seen = True
+        elif (
+            next_map == "map4"
+            and player is not None
+            and not player.flying_video_seen
+        ):
+            if not play_video(FLYING_VIDEO_PATH):
+                break
+            player.flying_video_seen = True
         current_map = next_map
 
     pygame.quit()

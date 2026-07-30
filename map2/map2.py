@@ -2,7 +2,6 @@ from pathlib import Path
 import random
 
 import pygame
-
 from music_manager import play_background_music
 from player import Player
 from portal import Portal
@@ -71,7 +70,7 @@ def create_emberstone(slime, ground_y):
 
 def map2(player=None, arrived_from=None):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Map 2")
+    pygame.display.set_caption("The Broken Rite - Map 2")
     clock = pygame.time.Clock()
     play_background_music(MUSIC_PATH)
 
@@ -148,7 +147,9 @@ def map2(player=None, arrived_from=None):
             and not player.is_kicking
         ):
             defeated_slimes = [
-                slime for slime in slimes if not slime.alive
+                slime
+                for slime in slimes
+                if not slime.alive and slime.knockback_air_time <= 0
             ]
             for slime in defeated_slimes:
                 player.add_points(SLIME_POINTS)

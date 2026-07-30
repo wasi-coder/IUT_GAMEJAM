@@ -12,6 +12,7 @@ SLIME_MAX_HEALTH = 20
 SLIME_CONTACT_DAMAGE = 10
 SLIME_DAMAGE_COOLDOWN = 1.0
 SLIME_KNOCKBACK_DECELERATION = 900
+SLIME_EDGE_MARGIN = 10
 KNOCKBACK_AIR_TIME = 0.45
 KNOCKBACK_ARC_HEIGHT = 22
 SLIME_PATH = Path(__file__).parent
@@ -74,9 +75,6 @@ class Slime:
         self.knockback_air_time = KNOCKBACK_AIR_TIME
 
     def update(self, delta_time, player, map_width):
-        if not self.alive:
-            return
-
         self.knockback_air_time = max(
             0, self.knockback_air_time - delta_time
         )
@@ -94,6 +92,8 @@ class Slime:
                 )
         else:
             self.knockback_velocity = 0.0
+            if not self.alive:
+                return
             if player.rect.centerx < self.rect.centerx:
                 direction = -1
                 self.facing_right = False
@@ -104,12 +104,20 @@ class Slime:
                 direction = 0
             self.position_x += direction * SLIME_SPEED * delta_time
 
+        left_boundary = SLIME_EDGE_MARGIN
+        right_boundary = map_width - self.rect.width - SLIME_EDGE_MARGIN
         self.position_x = max(
-            0, min(self.position_x, map_width - self.rect.width)
+            left_boundary, min(self.position_x, right_boundary)
         )
-        if self.position_x in (0, map_width - self.rect.width):
+        if self.position_x in (left_boundary, right_boundary):
             self.knockback_velocity = 0.0
         self.rect.x = round(self.position_x)
+
+        # A fatal kick still completes its visible launch, but a defeated
+        # slime can no longer chase or hurt the player.
+        if not self.alive:
+            self.animation_time += delta_time
+            return
 
         self.damage_cooldown_left = max(
             0, self.damage_cooldown_left - delta_time

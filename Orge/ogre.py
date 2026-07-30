@@ -6,10 +6,10 @@ from music_manager import play_sound_effect
 
 
 OGRE_MAX_HEALTH = 200
-OGRE_ATTACK_DAMAGE = (30, 42, 55)
+OGRE_ATTACK_DAMAGE = (20, 30, 40)
 OGRE_SPEED = (62, 88, 112)
 OGRE_ATTACK_RANGE = (72, 92, 112)
-OGRE_ATTACK_COOLDOWN = 20.0
+OGRE_ATTACK_COOLDOWN = 8.0
 OGRE_ANIMATION_SPEED = {
     "idle": 6,
     "walk": 9,

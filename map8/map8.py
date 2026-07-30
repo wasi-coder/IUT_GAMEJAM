@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pygame
-
 from music_manager import play_background_music
 from Orge import OgreBoss
 from player import Player
@@ -42,10 +41,18 @@ def create_platform_rects():
     ]
 
 
+def complete_final_boss(player):
+    """Award the final victory and return to the Map 1 Headmaster."""
+    if not player.map8_cleared:
+        player.add_points(250)
+    player.map8_cleared = True
+    return "map1", "map8"
+
+
 def map8(player=None, arrived_from=None):
     """Run the final Ogre boss arena."""
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Map 8 - Final Battle")
+    pygame.display.set_caption("The Broken Rite - Final Battle")
     clock = pygame.time.Clock()
     play_background_music(MUSIC_PATH)
     background = load_map()
@@ -114,10 +121,8 @@ def map8(player=None, arrived_from=None):
             and not player.is_kicking
         ):
             ogre = None
-            player.map8_cleared = True
-            player.add_points(250)
-            player.combat_message = "The final Ogre has been defeated!"
-            player.combat_message_time_left = 5.0
+            next_map, next_arrival_from = complete_final_boss(player)
+            running = False
 
         if not player.is_dead and player.rect.top > MAP_HEIGHT:
             player.take_damage(player.health)

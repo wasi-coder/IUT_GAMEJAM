@@ -10,6 +10,8 @@ DRAGON_ATTACK_DAMAGE = 40
 DRAGON_SPEED = 42
 DRAGON_ATTACK_RANGE = 88
 DRAGON_ATTACK_COOLDOWN = 1.4
+DRAGON_KNOCKBACK_STRENGTH = 2.2
+DRAGON_KNOCKBACK_DECELERATION = 700
 DRAGON_IDLE_SPEED = 6
 DRAGON_ATTACK_SPEED = 12
 DRAGON_ATTACK_FRAME_COUNT = 18
@@ -42,6 +44,7 @@ class DragonBoss:
         self.attack_time_left = 0.0
         self.attack_cooldown_left = 0.0
         self.attack_has_dealt_damage = False
+        self.knockback_velocity = 0.0
 
     @classmethod
     def _load_animations(cls):
@@ -91,6 +94,12 @@ class DragonBoss:
                 max_duration_ms=1000,
             )
 
+    def apply_knockback(self, distance):
+        """Push the flying boss backward, with resistance from its weight."""
+        self.knockback_velocity = distance * DRAGON_KNOCKBACK_STRENGTH
+        self.attack_time_left = 0.0
+        self.attack_has_dealt_damage = False
+
     def _distance_to_player(self, player):
         return pygame.Vector2(player.rect.center).distance_to(
             self.rect.center
@@ -115,6 +124,30 @@ class DragonBoss:
         )
         if offset.x != 0:
             self.facing_right = offset.x > 0
+
+        if abs(self.knockback_velocity) > 1:
+            self.state = "idle"
+            self.animation_time += delta_time
+            self.position.x += self.knockback_velocity * delta_time
+            self.position.x = max(
+                self.zone_left,
+                min(self.position.x, self.zone_right - self.rect.width),
+            )
+            self.rect.topleft = (
+                round(self.position.x),
+                round(self.position.y),
+            )
+            deceleration = DRAGON_KNOCKBACK_DECELERATION * delta_time
+            if self.knockback_velocity > 0:
+                self.knockback_velocity = max(
+                    0.0, self.knockback_velocity - deceleration
+                )
+            else:
+                self.knockback_velocity = min(
+                    0.0, self.knockback_velocity + deceleration
+                )
+            return
+        self.knockback_velocity = 0.0
 
         if self.attack_time_left > 0:
             self.state = "attack"

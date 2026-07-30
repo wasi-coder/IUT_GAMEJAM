@@ -2,7 +2,6 @@ from pathlib import Path
 import random
 
 import pygame
-
 from music_manager import play_background_music
 from player import Player
 from npc2 import MissionNPC
@@ -192,7 +191,7 @@ def create_wind_crystals(toad):
 
 def map3(player=None, arrived_from=None):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Map 3")
+    pygame.display.set_caption("The Broken Rite - Map 3")
     clock = pygame.time.Clock()
     play_background_music(MUSIC_PATH)
 

@@ -29,9 +29,10 @@ DEATH_POINT_PENALTY = 10
 ATTACK_RANGE = 20
 FIRE_RANGE = 100
 FIRE_DAMAGE = 25
-KICK_RANGE = 28
+KICK_RANGE = 44
 KICK_KNOCKBACK = 115
 KICK_DURATION = KICK_FRAME_COUNT / KICK_ANIMATION_SPEED
+KICK_IMPACT_TIME = (KICK_FRAME_COUNT - 2) / KICK_ANIMATION_SPEED
 KICK_COOLDOWN = 0.55
 FLIGHT_DURATION = 30.0
 FLIGHT_SPEED = 180
@@ -165,6 +166,8 @@ class Player:
         self.map2_cleared = False
         self.intro_dialogue_seen = False
         self.slime_video_seen = False
+        self.toad_video_seen = False
+        self.flying_video_seen = False
         self.map4_cleared = False
         self.map6_cleared = False
         self.map7_painting_angle = 0
@@ -182,6 +185,7 @@ class Player:
         self.map7_book_delivered = False
         self.arcana_magic_mastered = False
         self.map8_cleared = False
+        self.final_praise_seen = False
         self.map7_puzzle_time_left = 90.0
         self.map7_puzzle_timer_started = False
         self.active_screen = None
@@ -546,21 +550,19 @@ class Player:
 
     def get_kick_rect(self):
         """Return the kick area, including enemies overlapping the player."""
-        top = self.rect.top + self.rect.height // 3
-        height = self.rect.height * 2 // 3
         if self.facing_right:
             return pygame.Rect(
                 self.rect.left,
-                top,
+                self.rect.top,
                 self.rect.width + KICK_RANGE,
-                height,
+                self.rect.height,
             )
 
         return pygame.Rect(
             self.rect.left - KICK_RANGE,
-            top,
+            self.rect.top,
             self.rect.width + KICK_RANGE,
-            height,
+            self.rect.height,
         )
 
     @property
@@ -656,13 +658,13 @@ class Player:
         remaining_time = self.kick_time_left - delta_time
         animation_finished = remaining_time <= 0.000001
         self.kick_time_left = 0 if animation_finished else remaining_time
+        elapsed_time = KICK_DURATION - max(0.0, remaining_time)
 
         if (
             not self.kick_has_dealt_damage
-            and animation_finished
+            and elapsed_time >= KICK_IMPACT_TIME
         ):
             kick_rect = self.get_kick_rect()
-            direction = 1 if self.facing_right else -1
 
             for target in damage_targets:
                 target_rect = getattr(target, "rect", None)
@@ -676,6 +678,14 @@ class Player:
                     take_damage(self.attack_damage)
                     apply_knockback = getattr(target, "apply_knockback", None)
                     if callable(apply_knockback):
+                        # Always launch the enemy away from the player. This
+                        # also handles enemies overlapping the player's body.
+                        if target_rect.centerx > self.rect.centerx:
+                            direction = 1
+                        elif target_rect.centerx < self.rect.centerx:
+                            direction = -1
+                        else:
+                            direction = 1 if self.facing_right else -1
                         apply_knockback(direction * KICK_KNOCKBACK)
 
             self.kick_has_dealt_damage = True

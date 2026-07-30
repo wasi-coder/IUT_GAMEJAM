@@ -7,6 +7,7 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import pygame
 
 from map3.map3 import SCREEN_HEIGHT, SCREEN_WIDTH, create_night_overlay
+from map1.map1 import FINAL_VICTORY_DIALOGUE, create_story_dialogue
 from npc1 import HealingNPC
 from player import Player
 
@@ -36,6 +37,18 @@ class Map3NightAndNpcTests(unittest.TestCase):
         self.assertEqual(player.health, player.max_health)
         self.assertFalse(hasattr(npc, "draw_store"))
         self.assertFalse(hasattr(npc, "handle_event"))
+
+    def test_headmaster_praises_player_after_final_boss(self):
+        player = Player(100, 200)
+        player.map8_cleared = True
+
+        dialogue, kind = create_story_dialogue(player, "map8", {})
+
+        self.assertIsNotNone(dialogue)
+        self.assertEqual(kind, "final")
+        praise = " ".join(line["text"] for line in FINAL_VICTORY_DIALOGUE)
+        self.assertIn("defeated the Ogre", praise)
+        self.assertIn("proud of you", praise)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@ from pathlib import Path
 import random
 
 import pygame
-
 from crow import Crow
 from Dragon import DragonBoss
 from music_manager import play_background_music
@@ -61,7 +60,7 @@ def create_enemies():
 def map4(player=None, arrived_from=None):
     """Run the bottomless flying map."""
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Map 4 - Bottomless Flight")
+    pygame.display.set_caption("The Broken Rite - Bottomless Flight")
     clock = pygame.time.Clock()
     play_background_music(MUSIC_PATH)
     map_surface = load_map()
